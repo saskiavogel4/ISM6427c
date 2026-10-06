@@ -25,7 +25,9 @@
     </div>
     <div class="header-right">
       <div id="user-menu" class="user-menu" hidden>
-        <span id="user-email" class="muted small user-email"></span>
+        <a href="#profile" id="profile-btn" class="btn btn-small profile-btn" title="Your profile">
+          <span id="user-avatar" aria-hidden="true">🦉</span><span id="user-label" class="label">Profile</span>
+        </a>
         <button type="button" id="signout-btn" class="btn btn-small">Sign out</button>
       </div>
       <div class="theme-switch" role="radiogroup" aria-label="Theme">
@@ -131,6 +133,86 @@
     </section>
   </main>
 
+  <main id="profile-view" class="container profile" hidden aria-labelledby="profile-title">
+    <div class="profile-head">
+      <a href="#" class="btn btn-small" id="profile-back">← Back to weather</a>
+    </div>
+
+    <form id="profile-form" class="card profile-card" novalidate>
+      <div class="profile-hero">
+        <span id="profile-avatar-preview" class="avatar-lg" aria-hidden="true">🦉</span>
+        <div>
+          <h1 id="profile-title">Your profile</h1>
+          <p id="profile-email" class="muted small"></p>
+        </div>
+      </div>
+
+      <fieldset class="group">
+        <legend>Avatar</legend>
+        <div id="avatar-options" class="avatar-options" role="radiogroup" aria-label="Choose an avatar"></div>
+      </fieldset>
+
+      <div class="grid-2">
+        <label class="field">
+          <span>First name <span class="req" aria-hidden="true">*</span></span>
+          <input id="pf-first" type="text" maxlength="40" autocomplete="given-name" required />
+        </label>
+        <label class="field">
+          <span>Last name</span>
+          <input id="pf-last" type="text" maxlength="40" autocomplete="family-name" />
+        </label>
+      </div>
+
+      <label class="field">
+        <span>Major / program</span>
+        <input id="pf-major" type="text" maxlength="80" placeholder="e.g. MS Information Systems" />
+      </label>
+
+      <label class="field">
+        <span>About me <span id="pf-bio-count" class="muted small">0/280</span></span>
+        <textarea id="pf-bio" rows="3" maxlength="280" placeholder="A little about you…"></textarea>
+      </label>
+
+      <fieldset class="group">
+        <legend>Home city</legend>
+        <p class="muted small">The weather opens here, and the 🏠 button brings you back.</p>
+        <div class="home-current">
+          <span id="pf-home-label">Boca Raton, FL · FAU</span>
+          <button type="button" id="pf-home-reset" class="link-btn">Reset to FAU</button>
+        </div>
+        <div class="search">
+          <label for="pf-home-search" class="sr-only">Search for your home city</label>
+          <input id="pf-home-search" type="search" placeholder="Search a city to change it…" autocomplete="off" />
+          <ul id="pf-home-results" class="search-results" role="listbox" hidden></ul>
+        </div>
+      </fieldset>
+
+      <div class="grid-2">
+        <fieldset class="group">
+          <legend>Temperature</legend>
+          <div class="segmented">
+            <label><input type="radio" name="pf-unit" value="f" /> <span>°F</span></label>
+            <label><input type="radio" name="pf-unit" value="c" /> <span>°C</span></label>
+          </div>
+        </fieldset>
+        <fieldset class="group">
+          <legend>Theme</legend>
+          <div class="segmented">
+            <label><input type="radio" name="pf-theme" value="light" /> <span>☀️ Light</span></label>
+            <label><input type="radio" name="pf-theme" value="dark" /> <span>🌙 Dark</span></label>
+            <label><input type="radio" name="pf-theme" value="system" /> <span>💻 System</span></label>
+          </div>
+        </fieldset>
+      </div>
+
+      <p id="profile-message" class="auth-message" role="status" hidden></p>
+
+      <div class="profile-actions">
+        <button type="submit" id="profile-save" class="btn btn-primary">Save profile</button>
+      </div>
+    </form>
+  </main>
+
   <footer class="footer muted small">
     Live data from <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>. Go Owls! 🦉
   </footer>
@@ -138,6 +220,7 @@
   <script src="vendor/supabase.js"></script>
   <script src="config.js"></script>
   <script src="app.js"></script>
+  <script src="profile.js"></script>
   <script src="auth.js"></script>
 </body>
 </html>

@@ -4,6 +4,7 @@ A responsive weather app with live data from [Open-Meteo](https://open-meteo.com
 
 ## Features
 - Sign in with email and password (Supabase Auth): create an account, sign in, sign out, reset a forgotten password
+- A profile page for each user: avatar, name, major, bio, home city, °F/°C and theme, saved in Supabase so they follow you to any device
 - A greeting that uses the signed-in person's first name and changes with the time of day
 - Current conditions: temperature, feels like, humidity, wind, UV index, chance of rain, sunrise and sunset
 - An hourly forecast for the next 24 hours and a 7-day forecast
@@ -18,6 +19,8 @@ A responsive weather app with live data from [Open-Meteo](https://open-meteo.com
 - `styles.css`: themes and responsive layout
 - `app.js`: calls the Open-Meteo API and renders the forecast
 - `auth.js`: sign-in screen and session handling (Supabase Auth)
+- `profile.js`: profile page; loads and saves the `profiles` table
+- `supabase/migrations/`: database setup for the `profiles` table and its security rules (already applied to the Supabase project)
 - `config.js`: Supabase project URL and publishable key (safe to be public)
 - `vendor/supabase.js`: Supabase JS client v2.117.2 (UMD build)
 - `netlify.toml`: Netlify config (static site, no build step)

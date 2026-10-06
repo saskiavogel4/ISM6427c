@@ -80,7 +80,10 @@
       m.setAttribute('content', isDark ? '#0b1220' : '#f4f7fb');
     });
   }
-  themeButtons.forEach((b) => b.addEventListener('click', () => applyTheme(b.dataset.themeChoice)));
+  themeButtons.forEach((b) => b.addEventListener('click', () => {
+    applyTheme(b.dataset.themeChoice);
+    notify({ theme: b.dataset.themeChoice });
+  }));
   darkQuery.addEventListener?.('change', () => applyTheme(store.get('theme') || 'system'));
   applyTheme(store.get('theme') || 'system');
 
@@ -99,21 +102,28 @@
 
   // ---------- State ----------
   let units = store.get('units') === 'c' ? 'c' : 'f';
-  let place = loadPlace() || DEFAULT_PLACE;
+  let homePlace = DEFAULT_PLACE; // the signed-in user's home city from their profile
+  let place = homePlace;
   let lastData = null;
+  let started = false;
+  let onPreferenceChange = null;
 
-  function loadPlace() {
-    try {
-      const p = JSON.parse(store.get('place'));
-      if (p && typeof p.latitude === 'number' && typeof p.longitude === 'number') return p;
-    } catch { /* ignore */ }
-    return null;
+  // Tell the profile code when the user changes a preference from the main screen.
+  function notify(change) {
+    if (onPreferenceChange) onPreferenceChange(change);
   }
+
   function setPlace(p) {
     place = p;
-    if (p === DEFAULT_PLACE) store.remove('place');
-    else store.set('place', JSON.stringify(p));
-    loadWeather();
+    if (started) loadWeather();
+  }
+
+  function updateHomeButton() {
+    const btn = $('home-btn');
+    const isFau = homePlace === DEFAULT_PLACE;
+    btn.querySelector('.label').textContent = isFau ? 'FAU' : 'Home';
+    btn.firstChild.textContent = isFau ? '🦉' : '🏠';
+    btn.title = `Back to ${placeLabel(homePlace)}`;
   }
 
   function placeLabel(p) {
@@ -261,6 +271,7 @@
     store.set('units', units);
     updateUnitButton();
     loadWeather();
+    notify({ temperature_unit: units });
   });
 
   // ---------- Search ----------
@@ -319,14 +330,19 @@
     });
   }
 
+  async function geocode(q) {
+    const params = new URLSearchParams({ name: q, count: '6', language: 'en', format: 'json' });
+    const res = await fetch(`${GEOCODE_URL}?${params}`);
+    if (!res.ok) throw new Error(`Place search returned ${res.status}`);
+    const data = await res.json();
+    return data.results || [];
+  }
+
   async function search(q) {
     const seq = ++searchSeq;
     try {
-      const params = new URLSearchParams({ name: q, count: '6', language: 'en', format: 'json' });
-      const res = await fetch(`${GEOCODE_URL}?${params}`);
-      if (!res.ok) throw new Error(res.status);
-      const data = await res.json();
-      if (seq === searchSeq && input.value.trim()) showResults(data.results || []);
+      const list = await geocode(q);
+      if (seq === searchSeq && input.value.trim()) showResults(list);
     } catch (err) {
       console.error(err);
       if (seq === searchSeq) setStatus("Couldn't search for places right now.", true);
@@ -357,7 +373,7 @@
   });
 
   // ---------- Location buttons ----------
-  $('home-btn').addEventListener('click', () => setPlace(DEFAULT_PLACE));
+  $('home-btn').addEventListener('click', () => setPlace(homePlace));
 
   $('locate-btn').addEventListener('click', () => {
     if (!navigator.geolocation) {
@@ -379,14 +395,50 @@
     );
   });
 
+  // ---------- Profile ----------
+  // auth.js passes in the signed-in user's profile row (see supabase/migrations).
+  function applyProfile(profile) {
+    const p = profile || {};
+    userName = (p.first_name || '').trim();
+
+    if (p.theme) applyTheme(p.theme);
+
+    let reload = false;
+    if ((p.temperature_unit === 'c' || p.temperature_unit === 'f') && p.temperature_unit !== units) {
+      units = p.temperature_unit;
+      store.set('units', units);
+      updateUnitButton();
+      reload = true;
+    }
+
+    const wasAtHome = place === homePlace;
+    homePlace = typeof p.home_latitude === 'number' && typeof p.home_longitude === 'number'
+      ? {
+        name: p.home_name || 'Home',
+        admin: p.home_admin || '',
+        country: p.home_country || '',
+        latitude: p.home_latitude,
+        longitude: p.home_longitude,
+      }
+      : DEFAULT_PLACE;
+    if (wasAtHome || !started) {
+      place = homePlace;
+      reload = true;
+    }
+
+    updateHomeButton();
+    updateGreeting();
+    if (reload && started) loadWeather();
+  }
+
   // ---------- Start ----------
   // auth.js calls start() once someone signs in, so nothing loads before then.
-  let started = false;
   function start() {
     updateGreeting();
     if (started) return;
     started = true;
     updateUnitButton();
+    updateHomeButton();
     loadWeather();
     setInterval(() => { updateGreeting(); loadWeather(); }, REFRESH_MS);
     document.addEventListener('visibilitychange', () => {
@@ -396,6 +448,11 @@
 
   window.OwlWeather = {
     start,
+    applyProfile,
+    geocode,
+    placeLabel,
+    DEFAULT_PLACE,
     setUserName(name) { userName = name || ''; updateGreeting(); },
+    set onPreferenceChange(fn) { onPreferenceChange = fn; },
   };
 })();

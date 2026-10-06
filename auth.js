@@ -16,6 +16,7 @@
   const client = window.supabase.createClient(cfg.supabaseUrl, cfg.supabasePublishableKey, {
     auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
   });
+  window.OwlAuth = { client };
 
   // ---------- Form modes ----------
   // signin | signup | forgot | recover (set a new password after a reset link)
@@ -131,8 +132,8 @@
 
   $('signout-btn').addEventListener('click', async () => {
     await client.auth.signOut();
-    // Reload so the weather view, timers and greeting fully reset.
-    window.location.reload();
+    // Reload (without #profile) so the weather view, timers and greeting fully reset.
+    window.location.replace(window.location.pathname + window.location.search);
   });
 
   // ---------- Session handling ----------
@@ -147,16 +148,26 @@
     return n || (user.email || '').split('@')[0];
   }
 
+  let loadedUserId = null;
+
   function render(session) {
     if (session && mode !== 'recover') {
       const user = session.user;
       authView.hidden = true;
-      appView.hidden = false;
       $('user-menu').hidden = false;
-      $('user-email').textContent = user.email || '';
-      window.OwlWeather.setUserName(displayName(user));
-      window.OwlWeather.start();
+      window.OwlProfile.setSignedIn(true);
+      if (loadedUserId === user.id) return; // e.g. a token refresh
+      loadedUserId = user.id;
+      const fallbackName = displayName(user);
+      window.OwlWeather.setUserName(fallbackName);
+      // Load the saved profile (name, home city, units, theme) before the first forecast.
+      window.OwlProfile.load(user, fallbackName)
+        .catch((err) => console.error('Could not load profile', err))
+        .finally(() => window.OwlWeather.start());
     } else {
+      loadedUserId = null;
+      window.OwlProfile.reset();
+      window.OwlProfile.setSignedIn(false);
       appView.hidden = true;
       $('user-menu').hidden = true;
       authView.hidden = false;
