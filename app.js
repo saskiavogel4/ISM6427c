@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const NAME = 'Saskia';
+  let userName = '';
   const DEFAULT_PLACE = {
     name: 'Boca Raton',
     admin: 'Florida',
@@ -91,7 +91,7 @@
     if (h < 5) part = 'Hey there, night owl';
     else if (h < 12) part = 'Good morning';
     else if (h < 17) part = 'Good afternoon';
-    $('greeting').textContent = `${part}, ${NAME}! 👋`;
+    $('greeting').textContent = userName ? `${part}, ${userName}! 👋` : `${part}! 👋`;
     $('greeting-sub').textContent = new Date().toLocaleDateString(undefined, {
       weekday: 'long', month: 'long', day: 'numeric',
     });
@@ -380,11 +380,22 @@
   });
 
   // ---------- Start ----------
-  updateGreeting();
-  updateUnitButton();
-  loadWeather();
-  setInterval(() => { updateGreeting(); loadWeather(); }, REFRESH_MS);
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') { updateGreeting(); loadWeather(); }
-  });
+  // auth.js calls start() once someone signs in, so nothing loads before then.
+  let started = false;
+  function start() {
+    updateGreeting();
+    if (started) return;
+    started = true;
+    updateUnitButton();
+    loadWeather();
+    setInterval(() => { updateGreeting(); loadWeather(); }, REFRESH_MS);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') { updateGreeting(); loadWeather(); }
+    });
+  }
+
+  window.OwlWeather = {
+    start,
+    setUserName(name) { userName = name || ''; updateGreeting(); },
+  };
 })();

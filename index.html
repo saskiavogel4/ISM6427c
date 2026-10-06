@@ -23,22 +23,62 @@
       <span class="brand-icon" aria-hidden="true">⛅</span>
       <span class="brand-name">Owl Weather</span>
     </div>
-    <div class="theme-switch" role="radiogroup" aria-label="Theme">
-      <button type="button" role="radio" data-theme-choice="light" title="Light theme">
-        <span aria-hidden="true">☀️</span><span class="label">Light</span>
-      </button>
-      <button type="button" role="radio" data-theme-choice="dark" title="Dark theme">
-        <span aria-hidden="true">🌙</span><span class="label">Dark</span>
-      </button>
-      <button type="button" role="radio" data-theme-choice="system" title="Match system theme">
-        <span aria-hidden="true">💻</span><span class="label">System</span>
-      </button>
+    <div class="header-right">
+      <div id="user-menu" class="user-menu" hidden>
+        <span id="user-email" class="muted small user-email"></span>
+        <button type="button" id="signout-btn" class="btn btn-small">Sign out</button>
+      </div>
+      <div class="theme-switch" role="radiogroup" aria-label="Theme">
+        <button type="button" role="radio" data-theme-choice="light" title="Light theme">
+          <span aria-hidden="true">☀️</span><span class="label">Light</span>
+        </button>
+        <button type="button" role="radio" data-theme-choice="dark" title="Dark theme">
+          <span aria-hidden="true">🌙</span><span class="label">Dark</span>
+        </button>
+        <button type="button" role="radio" data-theme-choice="system" title="Match system theme">
+          <span aria-hidden="true">💻</span><span class="label">System</span>
+        </button>
+      </div>
     </div>
   </header>
 
-  <main class="container">
+  <main id="auth" class="auth" aria-labelledby="auth-title" hidden>
+    <div class="card auth-card">
+      <div class="auth-hero" aria-hidden="true">🦉⛅</div>
+      <h1 id="auth-title">Welcome to Owl Weather</h1>
+      <p id="auth-intro" class="muted">Sign in to see live weather for Boca Raton and beyond.</p>
+
+      <div class="auth-tabs" role="tablist" id="auth-tabs">
+        <button type="button" role="tab" id="tab-signin" data-mode="signin" aria-selected="true">Sign in</button>
+        <button type="button" role="tab" id="tab-signup" data-mode="signup" aria-selected="false">Create account</button>
+      </div>
+
+      <form id="auth-form" class="auth-form" novalidate>
+        <label class="field" id="field-name" hidden>
+          <span>First name</span>
+          <input id="auth-name" type="text" autocomplete="given-name" maxlength="40" />
+        </label>
+        <label class="field" id="field-email">
+          <span>Email</span>
+          <input id="auth-email" type="email" autocomplete="email" required />
+        </label>
+        <label class="field" id="field-password">
+          <span>Password</span>
+          <input id="auth-password" type="password" autocomplete="current-password" minlength="6" required />
+        </label>
+        <p id="auth-message" class="auth-message" role="alert" hidden></p>
+        <button type="submit" id="auth-submit" class="btn btn-primary">Sign in</button>
+        <p class="auth-links small">
+          <a href="#" id="forgot-link">Forgot password?</a>
+          <a href="#" id="back-link" hidden>← Back to sign in</a>
+        </p>
+      </form>
+    </div>
+  </main>
+
+  <main id="app" class="container" hidden>
     <section class="greeting" aria-live="polite">
-      <h1 id="greeting">Hello, Saskia!</h1>
+      <h1 id="greeting">Hello!</h1>
       <p id="greeting-sub" class="muted"></p>
     </section>
 
@@ -95,6 +135,9 @@
     Live data from <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>. Go Owls! 🦉
   </footer>
 
+  <script src="vendor/supabase.js"></script>
+  <script src="config.js"></script>
   <script src="app.js"></script>
+  <script src="auth.js"></script>
 </body>
 </html>
